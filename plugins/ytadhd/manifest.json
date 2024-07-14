@@ -1,0 +1,14 @@
+{
+    "name": "ytadhd",
+    "description": "w",
+    "authors": [
+        {
+            "name": "icehace",
+            "id": "1187780390379860098"
+        }
+    ],
+    "main": "src/index.ts",
+    "vendetta": {
+        "icon": "ic_youtube_24px"
+    }
+}
