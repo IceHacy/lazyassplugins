@@ -1,7 +1,6 @@
-import { readFile, writeFile, readdir } from "fs/promises";
-import { extname } from "path";
+import { readFile, writeFile, readdir, mkdir } from "fs/promises";
+import { extname, dirname } from "path";
 import { createHash } from "crypto";
-
 import { rollup } from "rollup";
 import esbuild from "rollup-plugin-esbuild";
 import commonjs from "@rollup/plugin-commonjs";
@@ -48,17 +47,20 @@ const plugins = [
     esbuild({ minify: true }),
 ];
 
-for (let plug of await readdir("./plugins")) {
-    const manifest = JSON.parse(await readFile(`./plugins/${plug}/manifest.json`));
-    const outPath = `./dist/${plug}/index.js`;
+async function buildPlugin(pluginDir) {
+    const manifestPath = `./plugins/${pluginDir}/manifest.json`;
+    const manifest = JSON.parse(await readFile(manifestPath, "utf-8"));
+    const outPath = `./dist/${pluginDir}/index.js`;
 
     try {
+        await mkdir(dirname(outPath), { recursive: true });
+
         const bundle = await rollup({
-            input: `./plugins/${plug}/${manifest.main}`,
+            input: `./plugins/${pluginDir}/${manifest.main}`,
             onwarn: () => {},
             plugins,
         });
-    
+
         await bundle.write({
             file: outPath,
             globals(id) {
@@ -74,15 +76,30 @@ for (let plug of await readdir("./plugins")) {
             exports: "named",
         });
         await bundle.close();
-    
+
         const toHash = await readFile(outPath);
         manifest.hash = createHash("sha256").update(toHash).digest("hex");
         manifest.main = "index.js";
-        await writeFile(`./dist/${plug}/manifest.json`, JSON.stringify(manifest));
-    
+        await writeFile(`./dist/${pluginDir}/manifest.json`, JSON.stringify(manifest, null, 2));
+
         console.log(`Successfully built ${manifest.name}!`);
     } catch (e) {
-        console.error("Failed to build plugin...", e);
+        console.error(`Failed to build plugin ${pluginDir}...`, e);
         process.exit(1);
     }
 }
+
+async function main() {
+    try {
+        const pluginDirs = await readdir("./plugins");
+
+        for (const pluginDir of pluginDirs) {
+            await buildPlugin(pluginDir);
+        }
+    } catch (e) {
+        console.error("Failed to read plugins directory or build plugins...", e);
+        process.exit(1);
+    }
+}
+
+main();
