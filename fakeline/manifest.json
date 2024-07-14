@@ -1,0 +1,15 @@
+{
+  "name": "fakeline",
+  "description": "Makes it appear that you're online on PC instead of monile.",
+  "authors": [
+    {
+      "name": "icehace",
+      "id": "1187780390379860098"
+    }
+  ],
+  "main": "index.js",
+  "vendetta": {
+    "icon": "ic_status_online_24px"
+  },
+  "hash": "abd2dea6cfb0240889f194672eb9fcbb3d0bf80c73bba2dd95574290d16df3d5"
+}
